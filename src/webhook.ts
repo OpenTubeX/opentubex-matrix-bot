@@ -1,13 +1,13 @@
 export type GitHubEvent =
   | { kind: 'comment' | 'edit'; issue: number; id: number; body: string; author: string; url: string; delivery: string }
   | { kind: 'delete'; issue: number; id: number; delivery: string }
-  | { kind: 'state'; issue: number; state: 'closed' | 'reopened'; reason: string | null; author: string; url: string; delivery: string }
+  | { kind: 'state'; issue: number; state: 'closed' | 'reopened'; reason: string | null; author: string; delivery: string }
 
 interface Payload {
   action?: string
   repository?: { full_name?: string }
   sender?: { login?: string }
-  issue?: { number: number; html_url: string; state_reason?: string | null; pull_request?: unknown }
+  issue?: { number: number; state_reason?: string | null; pull_request?: unknown }
   comment?: { id: number; body?: string | null; html_url: string; user?: { login?: string } }
 }
 
@@ -34,6 +34,6 @@ export function webhookEvent(name: string | null, delivery: string | null, paylo
   }
   if (name === 'issues' && (action === 'closed' || action === 'reopened')) {
     const author = payload.sender?.login ?? 'Someone'
-    return { kind: 'state', issue: issue.number, state: action, reason: issue.state_reason ?? null, author, url: issue.html_url, delivery }
+    return { kind: 'state', issue: issue.number, state: action, reason: issue.state_reason ?? null, author, delivery }
   }
 }

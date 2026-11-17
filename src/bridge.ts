@@ -295,7 +295,8 @@ export class Bridge extends DurableObject<Env> {
       msgtype: 'm.text',
       body: `${header}: ${event.body}`,
       format: 'org.matrix.custom.html',
-      formatted_body: `<p><strong>${escapeHtml(event.author)}</strong> on <a href="${escapeHtml(event.url)}">GitHub</a>:</p>${html}`,
+      // Links in the header would make clients preview the issue under every comment.
+      formatted_body: `<p><strong>${escapeHtml(event.author)}</strong> on GitHub:</p>${html}`,
     }
   }
 
@@ -308,9 +309,7 @@ export class Bridge extends DurableObject<Env> {
       const action = event.state === 'closed' ? `closed this issue${reason}` : 'reopened this issue'
       return this.matrix.send(thread.room, `gh-state:${event.delivery}`, {
         msgtype: 'm.notice',
-        body: `${event.author} ${action} on GitHub: ${event.url}`,
-        format: 'org.matrix.custom.html',
-        formatted_body: `<p>${escapeHtml(event.author)} ${action} on <a href="${escapeHtml(event.url)}">GitHub</a>.</p>`,
+        body: `${event.author} ${action} on GitHub.`,
         'm.mentions': mentions,
         'm.relates_to': threadRelation(thread.root),
       })
