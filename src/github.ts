@@ -1,4 +1,5 @@
 import { type Fetch, HttpError } from './http'
+import type { IssueSummary } from './text'
 
 export interface Issue {
   number: number
@@ -81,6 +82,16 @@ export class GitHub {
 
   createIssue(issue: { title: string; body: string; type: string }) {
     return this.request<Issue>('POST', `/repos/${this.repository}/issues`, issue)
+  }
+
+  // Undefined for numbers that are not issues or pull requests here, or were deleted.
+  async getIssue(issue: number) {
+    try {
+      return await this.request<IssueSummary>('GET', `/repos/${this.repository}/issues/${issue}`)
+    } catch (error) {
+      if (error instanceof HttpError && (error.status === 404 || error.status === 410)) return undefined
+      throw error
+    }
   }
 
   async updateIssue(issue: number, update: IssueUpdate) {

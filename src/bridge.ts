@@ -2,12 +2,14 @@ import { DurableObject } from 'cloudflare:workers'
 import { GitHub } from './github'
 import { describe, type Fetch, HttpError } from './http'
 import { Matrix, type MatrixEvent, type MessageContent, messageText, permalink, threadRelation } from './matrix'
-import { commentBody, escapeHtml, issueBody, limits, type Notice, notices, parseCommand, removedReport } from './text'
+import { commentBody, escapeHtml, issueBody, issueReferences, type IssueSummary, limits, type Notice, notices, parseCommand, removedReport } from './text'
 import type { GitHubEvent } from './webhook'
 
 const pollInterval = 15_000
 const hour = 3_600_000
 const day = 24 * hour
+// Keeps a conversation about one issue from repeating its link.
+const linkCooldown = 30 * 60_000
 // Leaves room for the HTML copy within Matrix's 64 KiB event limit.
 const maxRelayedText = 20_000
 
@@ -132,6 +134,7 @@ export class Bridge extends DurableObject<Env> {
     }
     this.setState('since', sync.next_batch)
     this.sql.exec('DELETE FROM usage WHERE at < ?', Date.now() - day)
+    this.sql.exec("DELETE FROM state WHERE key LIKE 'linked:%' AND CAST(value AS INTEGER) < ?", Date.now() - linkCooldown)
   }
 
   private async handle(room: string, event: MatrixEvent) {
@@ -146,9 +149,10 @@ export class Bridge extends DurableObject<Env> {
     const thread = this.find<Thread>('SELECT * FROM threads WHERE root = ?', root)
     // A retry after the issue was filed only needs to confirm it.
     if (thread?.source === event.event_id) return this.notice(room, root, `filed:${event.event_id}`, notices.filed(thread.issue, this.issueUrl(thread.issue)))
-    if (thread) return this.reply(room, event, thread)
     const text = messageText(event.content)
     const command = text === undefined ? undefined : parseCommand(text)
+    if (text !== undefined && !command) await this.linkIssues(room, event, relation?.rel_type === 'm.thread' ? root : undefined, text)
+    if (thread) return this.reply(room, event, thread)
     if (!command) return
     if (command.kind === 'help' || !command.title) return this.notice(room, root, `help:${event.event_id}`, notices.help)
     if (this.used('report', day, event.sender) >= limits.reportsPerUser || this.used('report', day) >= limits.reportsTotal) {
@@ -175,6 +179,27 @@ export class Bridge extends DurableObject<Env> {
     )
     this.use('report', event.sender)
     await this.notice(room, root, `filed:${event.event_id}`, notices.filed(issue.number, issue.html_url))
+  }
+
+  private async linkIssues(room: string, event: MatrixEvent, threadRoot: string | undefined, text: string) {
+    const issues: IssueSummary[] = []
+    for (const number of issueReferences(text)) {
+      if (Number(this.state(`linked:${room}:${number}`) ?? 0) > Date.now() - linkCooldown) continue
+      const issue = await this.github.getIssue(number)
+      if (issue) issues.push(issue)
+    }
+    if (!issues.length) return
+    const notice = notices.issues(issues)
+    const reply = { 'm.in_reply_to': { event_id: event.event_id } }
+    await this.matrix.send(room, `links:${event.event_id}`, {
+      msgtype: 'm.notice',
+      body: notice.body,
+      format: 'org.matrix.custom.html',
+      formatted_body: notice.html,
+      'm.mentions': {},
+      'm.relates_to': threadRoot ? { rel_type: 'm.thread', event_id: threadRoot, is_falling_back: false, ...reply } : reply,
+    })
+    for (const issue of issues) this.setState(`linked:${room}:${issue.number}`, String(Date.now()))
   }
 
   private issueUrl(issue: number) {

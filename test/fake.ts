@@ -33,6 +33,11 @@ export function fakeServices() {
         issue++
         return json({ number: issue, html_url: `https://github.com/OpenTubeX/OpenTubeX/issues/${issue}` }, 201)
       }
+      const lookup = method === 'GET' && path.match(/\/issues\/(\d+)$/)?.[1]
+      if (lookup) {
+        if (lookup === '999') return json({}, 404)
+        return json({ number: Number(lookup), title: `Issue ${lookup}`, state: 'open', html_url: `https://github.com/OpenTubeX/OpenTubeX/issues/${lookup}` })
+      }
       if (method === 'POST' && path.endsWith('/comments')) return json({ id: ++comment }, 201)
       if (path === '/markdown') return new Response(`<p>${String(body?.text)}</p>`, { headers: { 'content-type': 'text/html' } })
       if (method === 'PATCH') return json({})

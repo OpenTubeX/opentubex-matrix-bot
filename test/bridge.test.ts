@@ -125,6 +125,22 @@ it('retries a failed batch without filing twice', async () => {
   expect(confirmations).toEqual(['filed:$first', 'filed:$first', 'filed:$second'])
 })
 
+it('links issues mentioned in chat once per half hour', async () => {
+  services.batch('s0', 's1', [
+    message('$ask', bob, 'Is this #12 or `#13`? Not #999, page#14, or https://example.org/#15. Again #12.'),
+    message('$again', alice, 'Back to #12'),
+  ])
+  await tick()
+
+  expect(services.github('GET', '/issues/').map(call => call.path.split('/').at(-1))).toEqual(['12', '999'])
+  expect(services.sent()).toHaveLength(1)
+  expect(services.sent()[0].body).toMatchObject({
+    msgtype: 'm.notice',
+    body: '#12 Issue 12 (open issue): https://github.com/OpenTubeX/OpenTubeX/issues/12',
+    'm.relates_to': { 'm.in_reply_to': { event_id: '$ask' } },
+  })
+})
+
 it('limits reports per Matrix user', async () => {
   services.batch(
     's0',

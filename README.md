@@ -16,6 +16,8 @@ What you want and why.
 
 `!help`, or a command without a summary, explains the commands.
 
+When a message mentions an issue or pull request like `#123`, the bot replies with its title, its status, and a link. It links each issue at most once every 30 minutes per room.
+
 ## What it does
 
 - The first line becomes the issue title and the rest its description. The issue says who reported it on Matrix and links to the message.
