@@ -1,0 +1,39 @@
+name: Update compatibility date
+
+on:
+  schedule:
+    - cron: '17 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - run: bun install --frozen-lockfile
+      # Uses the release date of the installed runtime, which Dependabot updates with Wrangler.
+      # A later date than the runtime supports would fail to deploy.
+      - name: Set the date
+        run: |
+          version=$(node -p "require('./node_modules/workerd/package.json').version.split('.')[1]")
+          date="${version:0:4}-${version:4:2}-${version:6:2}"
+          sed -i -E "s/(\"compatibility_date\": \")[0-9-]+/\\1$date/" wrangler.jsonc
+          bun run types
+          echo "date=$date" >> "$GITHUB_ENV"
+      - run: bun run typecheck
+      - run: bun run test
+      - uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
+        with:
+          branch: compatibility-date
+          commit-message: 'chore: update compatibility date to ${{ env.date }}'
+          title: 'chore: update compatibility date to ${{ env.date }}'
+          body: Sets the Worker's compatibility date to the release date of the installed Workers runtime. Typecheck and tests passed with the new date.
+          sign-commits: true

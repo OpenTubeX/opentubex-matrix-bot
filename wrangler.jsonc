@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "opentubex-matrix-bot",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-13",
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "BRIDGE", "class_name": "Bridge" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Bridge"] }],
+  // Re-arms the bridge's polling alarm if it ever stops.
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "vars": {
+    "MATRIX_HOMESERVER": "https://matrix-client.matrix.org",
+    // Comma-separated IDs of the rooms the bot listens in, not aliases.
+    "MATRIX_ROOMS": "",
+    "GITHUB_REPOSITORY": "OpenTubeX/OpenTubeX",
+    "GITHUB_APP_ID": "",
+    // Its comments show up as <slug>[bot]; the bridge ignores those webhooks.
+    "GITHUB_APP_SLUG": ""
+  },
+  "secrets": {
+    "required": ["MATRIX_ACCESS_TOKEN", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"]
+  }
+}
