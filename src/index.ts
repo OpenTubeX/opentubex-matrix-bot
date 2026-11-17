@@ -17,7 +17,7 @@ export default {
       request.headers.get('x-github-event'),
       request.headers.get('x-github-delivery'),
       JSON.parse(body),
-      env.GITHUB_REPOSITORY,
+      env.ISSUE_REPOSITORY,
       env.GITHUB_APP_SLUG,
     )
     if (event) await bridge(env).receive(event)

@@ -50,7 +50,7 @@ export class Bridge extends DurableObject<Env> {
   private sql = this.ctx.storage.sql
   private rooms = this.env.MATRIX_ROOMS.split(',').map(room => room.trim()).filter(Boolean)
   private matrix = new Matrix(this.env.MATRIX_HOMESERVER, this.env.MATRIX_ACCESS_TOKEN, (input, init) => this.http(input, init))
-  private github = new GitHub(this.env.GITHUB_APP_ID, this.env.GITHUB_APP_PRIVATE_KEY, this.env.GITHUB_REPOSITORY, (input, init) => this.http(input, init))
+  private github = new GitHub(this.env.GITHUB_APP_ID, this.env.GITHUB_APP_PRIVATE_KEY, this.env.ISSUE_REPOSITORY, (input, init) => this.http(input, init))
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env)
@@ -178,7 +178,7 @@ export class Bridge extends DurableObject<Env> {
   }
 
   private issueUrl(issue: number) {
-    return `https://github.com/${this.env.GITHUB_REPOSITORY}/issues/${issue}`
+    return `https://github.com/${this.env.ISSUE_REPOSITORY}/issues/${issue}`
   }
 
   private async reply(room: string, event: MatrixEvent, thread: Thread) {

@@ -16,6 +16,7 @@ export default defineConfig({
         bindings: {
           MATRIX_HOMESERVER: 'https://matrix.test',
           MATRIX_ROOMS: '!room:example.org',
+          ISSUE_REPOSITORY: 'OpenTubeX/OpenTubeX',
           GITHUB_APP_ID: '1',
           GITHUB_APP_SLUG: 'opentubex-matrix',
           MATRIX_ACCESS_TOKEN: 'matrix-token',

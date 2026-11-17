@@ -14,7 +14,7 @@
     "MATRIX_HOMESERVER": "https://matrix-client.matrix.org",
     // Comma-separated IDs of the rooms the bot listens in, not aliases.
     "MATRIX_ROOMS": "",
-    "GITHUB_REPOSITORY": "OpenTubeX/OpenTubeX",
+    "ISSUE_REPOSITORY": "OpenTubeX/OpenTubeX",
     "GITHUB_APP_ID": "",
     // Its comments show up as <slug>[bot]; the bridge ignores those webhooks.
     "GITHUB_APP_SLUG": ""
