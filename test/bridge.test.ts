@@ -1,6 +1,7 @@
 import { env, exports } from 'cloudflare:workers'
 import { reset, runDurableObjectAlarm, runInDurableObject } from 'cloudflare:test'
 import { afterEach, beforeEach, expect, it } from 'vitest'
+import { limits } from '../src/text'
 import { edit, fakeServices, inThread, message, redaction, room } from './fake'
 
 const alice = '@alice:example.org'
@@ -145,10 +146,10 @@ it('limits reports per Matrix user', async () => {
   services.batch(
     's0',
     's1',
-    ['$1', '$2', '$3', '$4'].map(id => message(id, alice, `!bug Report ${id}`)),
+    Array.from({ length: limits.reportsPerUser + 1 }, (_, index) => message(`$${index}`, alice, `!bug Report ${index}`)),
   )
   await tick()
 
-  expect(services.github('POST', '/issues')).toHaveLength(3)
+  expect(services.github('POST', '/issues')).toHaveLength(limits.reportsPerUser)
   expect(services.sent().at(-1)?.body?.body).toMatch(/^Too many reports today/)
 })

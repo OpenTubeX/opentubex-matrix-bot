@@ -1,4 +1,4 @@
-export const limits = { reportsPerUser: 3, reportsTotal: 20, repliesPerUser: 30, linksPerMessage: 3 }
+export const limits = { reportsPerUser: 10, reportsTotal: 20, repliesPerUser: 30, linksPerMessage: 3 }
 
 export interface Command {
   kind: 'bug' | 'feature' | 'help'
