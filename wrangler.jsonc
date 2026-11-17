@@ -4,6 +4,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-11-13",
   "observability": { "enabled": true },
+  "workers_dev": true,
+  "preview_urls": false,
   "durable_objects": {
     "bindings": [{ "name": "BRIDGE", "class_name": "Bridge" }]
   },
@@ -13,11 +15,11 @@
   "vars": {
     "MATRIX_HOMESERVER": "https://matrix-client.matrix.org",
     // Comma-separated IDs of the rooms the bot listens in, not aliases.
-    "MATRIX_ROOMS": "",
+    "MATRIX_ROOMS": "!qUVxXyiLwFaiXUdvra:matrix.org,!jNQqoHdyqpDdCHXJoD:matrix.org",
     "ISSUE_REPOSITORY": "OpenTubeX/OpenTubeX",
-    "GITHUB_APP_ID": "",
+    "GITHUB_APP_ID": "5797237",
     // Its comments show up as <slug>[bot]; the bridge ignores those webhooks.
-    "GITHUB_APP_SLUG": ""
+    "GITHUB_APP_SLUG": "opentubex-matrix-bot"
   },
   "secrets": {
     "required": ["MATRIX_ACCESS_TOKEN", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"]
